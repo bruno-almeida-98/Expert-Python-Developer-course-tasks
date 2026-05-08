@@ -48,7 +48,13 @@ Respond with ONLY valid JSON in this exact format:
             max_tokens=256,
             messages=[{"role": "user", "content": prompt}],
         )
+        if not response.content:
+            return AssessmentResult(score=1, feedback="Claude returned no content.")
         text = response.content[0].text.strip()
         match = re.search(r'\{.*\}', text, re.DOTALL)
-        data = json.loads(match.group(0) if match else text)
-        return AssessmentResult(score=int(data["score"]), feedback=data["feedback"])
+        try:
+            data = json.loads(match.group(0) if match else text)
+            score = max(1, min(10, int(data["score"])))
+            return AssessmentResult(score=score, feedback=str(data["feedback"]))
+        except (json.JSONDecodeError, KeyError, ValueError):
+            return AssessmentResult(score=1, feedback=f"Failed to parse assessment response: {text[:100]}")
