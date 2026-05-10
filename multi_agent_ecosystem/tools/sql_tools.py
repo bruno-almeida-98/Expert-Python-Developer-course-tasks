@@ -11,23 +11,28 @@ class SQLDatabase:
 
 
 def execute_sql(db: SQLDatabase, query: str) -> dict:
+    conn = None
     try:
         conn = db.connect()
         cursor = conn.execute(query)
         columns = [desc[0] for desc in cursor.description] if cursor.description else []
         rows = [list(row) for row in cursor.fetchall()]
-        conn.close()
         return {"columns": columns, "rows": rows, "error": None}
     except Exception as e:
         return {"columns": [], "rows": [], "error": str(e)}
+    finally:
+        if conn:
+            conn.close()
 
 
 def get_schema(db: SQLDatabase) -> str:
     conn = db.connect()
-    cursor = conn.execute("SELECT sql FROM sqlite_master WHERE type='table' AND sql IS NOT NULL")
-    schema_parts = [row[0] for row in cursor.fetchall()]
-    conn.close()
-    return "\n\n".join(schema_parts) if schema_parts else "No tables found."
+    try:
+        cursor = conn.execute("SELECT sql FROM sqlite_master WHERE type='table' AND sql IS NOT NULL")
+        schema_parts = [row[0] for row in cursor.fetchall()]
+        return "\n\n".join(schema_parts) if schema_parts else "No tables found."
+    finally:
+        conn.close()
 
 
 SQL_TOOL_DEFINITIONS = [
