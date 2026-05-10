@@ -91,11 +91,15 @@ class BaseAgent(ABC):
                 tool_results = []
                 for block in response.content:
                     if block.type == "tool_use":
-                        result = self.dispatch_tool(block.name, block.input)
+                        try:
+                            result = self.dispatch_tool(block.name, block.input)
+                            content = str(result)
+                        except Exception as e:
+                            content = f"Tool error: {e}"
                         tool_results.append({
                             "type": "tool_result",
                             "tool_use_id": block.id,
-                            "content": str(result),
+                            "content": content,
                         })
                 messages.append({"role": "user", "content": tool_results})
                 continue
