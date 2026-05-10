@@ -54,7 +54,7 @@ class Orchestrator:
         return best[0]
 
     async def run(self, task: str) -> AgentResult:
-        if self.memory:
+        if getattr(self, "memory", None):
             await self.memory.initialize()
         task_type = self._classify_task(task)
         agent_map = {
