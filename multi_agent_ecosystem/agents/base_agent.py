@@ -1,4 +1,3 @@
-import json
 from abc import ABC, abstractmethod
 from typing import Any
 import anthropic
@@ -45,7 +44,7 @@ class BaseAgent(ABC):
     async def run(self, task: str) -> AgentResult:
         """Run agent with self-assessment retry loop."""
         current_task = task
-        last_result = None
+        last_result: AgentResult = AgentResult(output="", assessment=None)
 
         for attempt in range(self.max_retries):
             output = self._run_tool_loop(current_task)
